@@ -9,6 +9,11 @@ trigger:
 pool:
   name: My-macbook
 
+variables:
+  imageRepository: 'test-app'
+  containerRegistryServiceConnection: 'azure-conn-younes'
+  tag: '$(Build.BuildId)'
+
 steps:
 - script: |
     python3 -m venv venv
@@ -22,6 +27,17 @@ steps:
     pytest
   displayName: 'Run tests'
 
-- script: |
-    docker build -t fastapi-azure-demo:$(Build.BuildId) .
-  displayName: 'Build Docker image'
+- task: Docker@2
+  displayName: 'Build and push image to ACR'
+  inputs:
+    command: 'buildAndPush'
+    repository: '$(imageRepository)'
+    dockerfile: 'Dockerfile'
+    containerRegistry: '$(containerRegistryServiceConnection)'
+    tags: |
+      $(tag)
+      latest
+
+# - script: |
+    # docker build -t fastapi-azure-demo:$(Build.BuildId) .
+  # displayName: 'Build Docker image'
